@@ -55,13 +55,99 @@ router.route('/')
                         update_date: new Date()
                     }, function (err, result) {
                         if (err) {
-                            res.json({'code': 500, 'msg': 'Update failure'})
+                            res.json({'code': 500, 'msg': 'Update failure'});
                         } else {
                             var msg = merge({'code':200, 'msg': 'Update successful'}, JSON.parse(JSON.stringify(result)));
                             res.json(msg);
                         }
                     });
                 }
+            }
+        });
+    });
+
+router.param('id', function (req, res, next, id) {
+    mongoose.model('User').findById(id, function (err, user) {
+        if (err || !user) {
+            res.json({'code': 404, 'msg': 'Not Found'});
+            // res.status(404);
+            // var err = new Error('Not Found');
+            // err.status = 404;
+            // res.format({
+            //     html: function () {
+            //         next(err);
+            //     },
+            //     json: function () {
+            //         res.json({message : err.status + ' ' + err});
+            //     }
+            // });
+        } else {
+            req.id = id;
+            next();
+        }
+    });
+});
+
+router.route('/:id')
+    .get(function(req, res) {
+        mongoose.model('User').findById(req.id, function (err, user) {
+            if (err) {
+                res.json({'code': 500, 'msg': 'Get Error'})
+            } else {
+                var msg = merge({'code':200, 'msg': 'Get successful'}, JSON.parse(JSON.stringify(user)));
+                res.json(msg);
+            }
+        });
+    })
+    .post(function (req, res) {
+        var name = req.body.name;
+        var password = req.body.password;
+        var gender = req.body.gender;
+        // mongoose.model('User').findById(req.id, function (err, user) {
+        //     user.update({
+        //         name: name,
+        //         password: password,
+        //         gender: gender,
+        //         update_date: new Date()
+        //     }, function (err, result) {
+        //         result is the number of update user
+        //         if (err) {
+        //             res.json({'code': 500, 'msg': 'Get Error'})
+        //         } else {
+        //             var msg = merge({'code':200, 'msg': 'Update successful'}, JSON.parse(JSON.stringify(result)));
+        //             res.json(msg);
+        //         }
+        //     });
+        // });
+        mongoose.model('User').findByIdAndUpdate(req.id, {$set:{
+            name: name,
+            password: password,
+            gender: gender,
+            update_date: new Date()
+        }}, function (err, user) {
+            if (err) {
+                res.json({'code': 500, 'msg': 'Get Error'})
+            } else {
+                // user is a object
+                var msg = merge({'code':200 }, JSON.parse(JSON.stringify(user)));
+                res.json(msg);
+            }
+        });
+    });
+router.route('/:id/delete')
+    .get(function(req, res) {
+        mongoose.model('User').findById(req.id, function (err, user) {
+            if (err) {
+                res.json({'code': 500, 'msg': 'Get Error'})
+            } else {
+                user.remove(function (err, result) {
+                    if (err) {
+                        res.json({'code': 500, 'msg': 'Delete Error'})
+                    } else {
+                        var msg = merge({'code':200 }, JSON.parse(JSON.stringify(result)));
+                        res.json(msg);
+                    }
+                });
             }
         });
     });
