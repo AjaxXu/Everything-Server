@@ -24,6 +24,7 @@ router.route('/')
         var name = req.body.name;
         var password = req.body.password;
         var gender = req.body.gender;
+        var head_image = req.body.head_image;
         mongoose.model('User').find({'name':name}, function (err, users) {
             if (err) {
                 res.json({'code': 500, 'msg': 'There is a problem to the database!'})
@@ -36,13 +37,14 @@ router.route('/')
                         name: name,
                         password: password,
                         gender: gender,
+                        head_image: head_image,
                         create_date: new Date(),
                         update_date: new Date()
                     }, function (err, result) {
                         if (err) {
                             res.json({'code': 500, 'msg': 'Create failure'})
                         } else {
-                            var msg = merge({'code':200, 'msg': 'Create successful'}, JSON.parse(JSON.stringify(result)));
+                            var msg = {'code':200, 'msg': 'Create successful', 'content' : result};
                             res.json(msg);
                         }
                     });
@@ -52,12 +54,13 @@ router.route('/')
                         name: name,
                         password: password,
                         gender: gender,
+                        head_image: head_image,
                         update_date: new Date()
                     }, function (err, result) {
                         if (err) {
                             res.json({'code': 500, 'msg': 'Update failure'});
                         } else {
-                            var msg = merge({'code':200, 'msg': 'Update successful'}, JSON.parse(JSON.stringify(result)));
+                            var msg = {'code':200, 'msg': 'Update successful', 'content': result };
                             res.json(msg);
                         }
                     });
@@ -94,7 +97,7 @@ router.route('/:id')
             if (err) {
                 res.json({'code': 500, 'msg': 'Get Error'})
             } else {
-                var msg = merge({'code':200, 'msg': 'Get successful'}, JSON.parse(JSON.stringify(user)));
+                var msg = {'code': 200, 'msg': 'Get successful', 'content': user};
                 res.json(msg);
             }
         });
@@ -129,7 +132,7 @@ router.route('/:id')
                 res.json({'code': 500, 'msg': 'Get Error'})
             } else {
                 // user is a object
-                var msg = merge({'code':200 }, JSON.parse(JSON.stringify(user)));
+                var msg = {'code':200 , "content": user};
                 res.json(msg);
             }
         });
@@ -144,7 +147,7 @@ router.route('/:id/delete')
                     if (err) {
                         res.json({'code': 500, 'msg': 'Delete Error'})
                     } else {
-                        var msg = merge({'code':200 }, JSON.parse(JSON.stringify(result)));
+                        var msg = {'code':200 , 'content': result};
                         res.json(msg);
                     }
                 });
