@@ -8,12 +8,16 @@ var Schema = mongoose.Schema;
 autoIncrement.initialize(mongoose.connection);
 
 var user = new Schema({
-    name: {type: String, required: true},
+    username: {type: String, required: true},
     password: {type: String, required: true},
+    phone_number: String,
+    nickname: String,
     gender: { type: Number, default: 0}, //0 for unknown, 1 for male, 2 for female
-    head_image: String, // head image
+    head_image: {type:String, default: 'images/1.png'}, // head image
     create_date: { type: Date, default: Date.now },
-    update_date: { type: Date, default: Date.now }
+    update_date: { type: Date, default: Date.now },
+    address: String,
+    autograph: String
 });
 
 user.plugin(autoIncrement.plugin, {

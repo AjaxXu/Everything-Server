@@ -69,6 +69,66 @@ router.route('/')
         });
     });
 
+router.route('/register')
+    .post(function (req, res) {
+        // console.log(JSON.stringify(req.body));
+        var phone_number = req.body.phone_number;
+        var password = req.body.password;
+        mongoose.model('User').find({'phone_number':phone_number}, function (err, users) {
+            if (err) {
+                res.json({'code': 500, 'msg': '系统错误'})
+            } else {
+                if (users.length == 0) {
+                    // users is []
+                    mongoose.model('User').create({
+                        phone_number: phone_number,
+                        username : phone_number,
+                        password: password,
+                        create_date: new Date(),
+                        update_date: new Date()
+                    }, function (err, result) {
+                        if (err) {
+                            res.json({'code': 500, 'msg': '注册失败'})
+                        } else {
+                            var msg = {'code':200, 'msg': '注册成功', 'content' : result};
+                            res.json(msg);
+                        }
+                    });
+                } else {
+                    // users is a object
+                    res.json({'code': 500, 'msg': '手机号已经被注册!\n请直接登录'})
+                }
+            }
+        });
+    });
+
+router.route('/login')
+    .post(function (req, res) {
+        var phone_number = req.body.phone_number;
+        var password = req.body.password;
+        mongoose.model('User').find({'phone_number':phone_number}, function (err, users) {
+            if (err) {
+                res.json({'code': 500, 'msg': '系统错误'})
+            } else {
+                if (users.length == 0) {
+                    res.json({'code': 500, 'msg': '该手机号还未注册!请先注册'})
+                } else {
+                    // users is a object
+                    user = users[0];
+                    console.log(JSON.stringify(user));
+                    if (password == user.password) {
+                        res.json({'code':200, 'msg': '登录成功', 'content': user });
+                    } else {
+                        res.json({'code': 500, 'msg': '登录失败'});
+                    }
+                }
+            }
+        });
+    });
+
+
+
+
 router.param('id', function (req, res, next, id) {
     mongoose.model('User').findById(id, function (err, user) {
         if (err || !user) {
@@ -103,31 +163,9 @@ router.route('/:id')
         });
     })
     .post(function (req, res) {
-        var name = req.body.name;
-        var password = req.body.password;
-        var gender = req.body.gender;
-        // mongoose.model('User').findById(req.id, function (err, user) {
-        //     user.update({
-        //         name: name,
-        //         password: password,
-        //         gender: gender,
-        //         update_date: new Date()
-        //     }, function (err, result) {
-        //         result is the number of update user
-        //         if (err) {
-        //             res.json({'code': 500, 'msg': 'Get Error'})
-        //         } else {
-        //             var msg = merge({'code':200, 'msg': 'Update successful'}, JSON.parse(JSON.stringify(result)));
-        //             res.json(msg);
-        //         }
-        //     });
-        // });
-        mongoose.model('User').findByIdAndUpdate(req.id, {$set:{
-            name: name,
-            password: password,
-            gender: gender,
-            update_date: new Date()
-        }}, function (err, user) {
+        var body = req.body;
+        body.update_date = new Date();
+        mongoose.model('User').findByIdAndUpdate(req.id, {$set:body}, function (err, user) {
             if (err) {
                 res.json({'code': 500, 'msg': 'Get Error'})
             } else {
