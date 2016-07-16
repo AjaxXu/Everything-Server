@@ -8,7 +8,7 @@ var db = require('../models/db'),
     bodyParser = require('body-parser'),
     formidable = require('formidable'),
     fs = require('fs'),
-    AVATAR_UPLOAD_FOLDER = 'images/avatar/';
+    AVATAR_UPLOAD_FOLDER = '/images/avatar/';
 var router = express.Router();
 
 router.route('/')
@@ -201,7 +201,7 @@ router.route('/:id/delete')
 router.post('/:id/head_image', bodyParser.urlencoded({ extended: false }),function (req, res) {
     var form = new formidable.IncomingForm();   //创建上传表单
     form.encoding = 'utf-8';		//设置编辑
-    form.uploadDir = 'public/' + AVATAR_UPLOAD_FOLDER;	 //设置上传目录
+    form.uploadDir = 'public' + AVATAR_UPLOAD_FOLDER;	 //设置上传目录
     form.keepExtensions = true;	 //保留后缀
     form.maxFieldsSize = 2 * 1024 * 1024;   //文件大小
 
