@@ -5,7 +5,10 @@ var db = require('../models/db'),
     user = require('../models/users'),
     mongoose = require('mongoose'),
     express = require('express'),
-    merge = require('../lib/object-merge');
+    bodyParser = require('body-parser'),
+    formidable = require('formidable'),
+    fs = require('fs'),
+    AVATAR_UPLOAD_FOLDER = 'images/avatar/';
 var router = express.Router();
 
 router.route('/')
@@ -29,12 +32,12 @@ router.route('/')
             if (err) {
                 res.json({'code': 500, 'msg': 'There is a problem to the database!'})
             } else {
-                // console.log(JSON.stringify(users));
+                console.log(JSON.stringify(users));
                 // console.log(typeof users);
                 if (users.length == 0) {
                     // users is []
                     mongoose.model('User').create({
-                        name: name,
+                        username: name,
                         password: password,
                         gender: gender,
                         head_image: head_image,
@@ -51,7 +54,7 @@ router.route('/')
                 } else {
                     // users is a object
                     mongoose.model('User').update({
-                        name: name,
+                        username: name,
                         password: password,
                         gender: gender,
                         head_image: head_image,
@@ -164,6 +167,7 @@ router.route('/:id')
     })
     .post(function (req, res) {
         var body = req.body;
+        // console.log(req.body);
         body.update_date = new Date();
         mongoose.model('User').findByIdAndUpdate(req.id, {$set:body}, function (err, user) {
             if (err) {
@@ -175,6 +179,7 @@ router.route('/:id')
             }
         });
     });
+
 router.route('/:id/delete')
     .get(function(req, res) {
         mongoose.model('User').findById(req.id, function (err, user) {
@@ -192,6 +197,47 @@ router.route('/:id/delete')
             }
         });
     });
+
+router.post('/:id/head_image', bodyParser.urlencoded({ extended: false }),function (req, res) {
+    var form = new formidable.IncomingForm();   //创建上传表单
+    form.encoding = 'utf-8';		//设置编辑
+    form.uploadDir = 'public/' + AVATAR_UPLOAD_FOLDER;	 //设置上传目录
+    form.keepExtensions = true;	 //保留后缀
+    form.maxFieldsSize = 2 * 1024 * 1024;   //文件大小
+
+    form.parse(req, function(err, fields, files) {
+        if (err) {
+            res.locals.error = err;
+            res.json({'code': 500, 'msg': 'Update image Error'});
+        }
+        else{
+            var newPath = form.uploadDir + files.head_image.name;
+            fs.renameSync(files.head_image.path, newPath);  //重命名
+
+            fields.head_image = AVATAR_UPLOAD_FOLDER + files.head_image.name;
+            fields.update_date = new Date();
+
+            mongoose.model('User').findById(req.id, function (err, user) {
+                if (err) {
+                    res.json({'code': 500, 'msg': 'There is a problem to the database!'})
+                } else {
+                    // users is a object
+                    user.update(fields, function (err, result) {
+                        if (err) {
+                            res.json({'code': 500, 'msg': 'Update failure'});
+                        } else {
+                            user.head_image = fields.head_image;
+                            user.update_date = fields.update_date;
+                            var msg = {'code':200, 'msg': 'Update successful', 'content': user };
+                            res.json(msg);
+                        }
+                    });
+                }
+            });
+        }
+
+    });
+});
 
 
 module.exports = router;
